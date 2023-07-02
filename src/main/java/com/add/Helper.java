@@ -35,21 +35,6 @@ public class Helper {
         return channel.retrieveMessageById("" + messageId).complete();
     }
 
-    public static void sendErrorMessage(Guild guild, String message) {
-        TextChannel errorChannel = guild
-                .getTextChannelById("" + ServerSQL.get(guild.getIdLong(), ServerOptions.BOT_ERROR_CHANNEL));
-        if (errorChannel != null && errorChannel.canTalk()) {
-            errorChannel.sendMessage("" + message).queue();
-        }
-    }
-
-    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message) {
-        long errorId = Helper.generateId();
-        System.err.println("Error id: " + errorId);
-        event.reply("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
-                .setEphemeral(true).queue();
-    }
-
     public static long generateId() {
         return Long.parseLong(String.format("%019d", Math.abs(new Random().nextLong())));
     }
