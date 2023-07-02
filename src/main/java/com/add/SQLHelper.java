@@ -1,4 +1,4 @@
-package discord.bot;
+package com.add;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
