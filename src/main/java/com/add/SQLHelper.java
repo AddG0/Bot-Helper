@@ -8,32 +8,33 @@ import java.sql.SQLException;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 public class SQLHelper {
     private static Connection conn = null;
+
+    private static HikariDataSource ds;
 
     private SQLHelper() {
     }
 
-    @NotNull
-    public static synchronized Connection getConnection(long guildId) {
+    static {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(Config.get("SQLLINK"));
+        config.setUsername(Config.get("SQLUSER"));
+        config.setPassword(Config.get("SQLPASS"));
+        config.setMaximumPoolSize(1000); // adjust this value according to your needs
+        ds = new HikariDataSource(config);
+    }
+
+    public static Connection getConnection(long guildId) throws SQLException {
+        Connection conn = null;
         try {
-            if (conn == null || conn.isClosed() || conn.isValid(1)) {
-                conn = DriverManager.getConnection(Config.get("SQLLINK"), Config.get("SQLUSER"),
-                        Config.get("SQLPASS"));
-            }
+            conn = ds.getConnection();
             conn.setCatalog("" + guildId);
-            int maxConnections = getMaxConnections();
-            int currentConnections = getCurrentConnections();
-            while (currentConnections > maxConnections) {
-                System.out.println(
-                        "Too many connections! Current: " + currentConnections + ", Max: " + maxConnections);
-                // Handle the situation accordingly, such as logging, delaying, or terminating
-                // new connections.
-                SQLHelper.class.wait(200);
-                currentConnections = getCurrentConnections();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw e;
         }
         return conn;
     }
@@ -69,7 +70,7 @@ public class SQLHelper {
 
     public static void executeSQL(long guildId, String sql) {
         try {
-            Connection conn = getConnection(guildId);            
+            Connection conn = getConnection(guildId);
             conn.setCatalog("" + guildId);
             conn.createStatement().execute(sql);
             conn.close();

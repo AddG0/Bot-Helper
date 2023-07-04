@@ -21,6 +21,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class Helper {
+    private Helper() {
+    }
 
     public static Message getMessageFromLink(Guild guild, String messageLink) {
         String[] splitLink = messageLink.split("/");

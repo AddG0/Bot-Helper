@@ -24,8 +24,8 @@ public class ServerSQL extends ListenerAdapter {
             e.printStackTrace();
             return false;
         }
-        Connection conn = SQLHelper.getConnection(guildId);
         try {
+            Connection conn = SQLHelper.getConnection(guildId);
             conn.setCatalog("" + guildId);
             System.out.println("Connected to database " + guildId + " successfully!");
         } catch (SQLException e) {
@@ -36,7 +36,7 @@ public class ServerSQL extends ListenerAdapter {
         createTable(guildId);
         return true;
     }
-    
+
     public static void deleteGuildDb(long guildId) {
         try {
             Connection conn = SQLHelper.getConnection(guildId);
