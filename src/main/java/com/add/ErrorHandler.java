@@ -22,13 +22,12 @@ public class ErrorHandler {
             if (errorChannel != null && errorChannel.canTalk()) {
                 errorChannel.sendMessage("" + message).queue();
             }
-            logger.error("Error: ", message, e.getStackTrace());
         }
 
         public default void onError(SlashCommandInteractionEvent event, String message, Throwable e) {
             long errorId = Helper.generateId();
             logger.error("ErrorId: ", errorId);
-            logger.error("Error: ",  message, e.getStackTrace());
+            logger.error("Error: ", message, e.getStackTrace());
             event.getChannel()
                     .sendMessage("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
                     .queue();
@@ -39,11 +38,19 @@ public class ErrorHandler {
         ErrorHandler.errorHandler = errorHandler;
     }
 
+    public static void sendErrorMessage(Guild guild, String message) {
+        errorHandler.onError(guild, message, new Throwable());
+    }
+
     public static void sendErrorMessage(Guild guild, String message, Throwable e) {
         errorHandler.onError(guild, message, e);
     }
 
-    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message,Throwable e) {
+    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message) {
+        errorHandler.onError(event, message, new Throwable());
+    }
+
+    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message, Throwable e) {
         errorHandler.onError(event, message, e);
     }
 
