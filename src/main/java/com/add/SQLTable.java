@@ -8,6 +8,6 @@ public interface SQLTable {
 
     String getTableName();
 
-    default void createTable(String guildId) {
+    default void createTable(long guildId) {
     }
 }
