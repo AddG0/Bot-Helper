@@ -1,10 +1,8 @@
 package com.add;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public interface BotAddon {
-    public void upsertCommands(JDA jda);
-
-    public default void onReady(JDA jda) {
-    }
+public abstract class BotAddon extends ListenerAdapter {
+    public abstract void upsertCommands(JDA jda);
 }
