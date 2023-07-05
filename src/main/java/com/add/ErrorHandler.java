@@ -23,8 +23,9 @@ public class ErrorHandler {
         public default void onError(SlashCommandInteractionEvent event, String message) {
             long errorId = Helper.generateId();
             System.err.println("Error id: " + errorId);
-            event.reply("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
-                    .setEphemeral(true).queue();
+            event.getChannel()
+                    .sendMessage("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
+                    .queue();
         }
     }
 
