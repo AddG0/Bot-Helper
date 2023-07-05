@@ -28,6 +28,10 @@ public class ErrorHandler {
         }
     }
 
+    public static void setErrorHandler(ErrorHandlerInterface errorHandler) {
+        ErrorHandler.errorHandler = errorHandler;
+    }
+
     public static void sendErrorMessage(Guild guild, String message) {
         errorHandler.onError(guild, message);
     }
