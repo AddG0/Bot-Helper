@@ -7,4 +7,7 @@ public interface SQLTable {
     Class<?> getType();
 
     String getTableName();
+
+    default void createTable(String guildId) {
+    }
 }
