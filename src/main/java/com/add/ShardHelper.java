@@ -21,7 +21,7 @@ public class ShardHelper {
         return shardManager.getShardById((int) (guildId >> 22));
     }
 
-    private static boolean allShardsReady() {
+    public static boolean allShardsReady() {
         return shardManager.getStatuses().values().stream()
                 .allMatch(status -> status == JDA.Status.CONNECTED);
     }
