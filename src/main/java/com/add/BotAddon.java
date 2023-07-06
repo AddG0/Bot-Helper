@@ -9,11 +9,6 @@ public abstract class BotAddon extends ListenerAdapter {
     public void upsertCommands(ShardManager shardManager) {
     }
 
-    public void upsertGlobalCommands(ShardManager shardManager, CommandData commands) {
-        if (commands == null)
-            return;
-        for (JDA jda : shardManager.getShards()) {
-            jda.upsertCommand(commands).queue();
-        }
+    public void upsertGlobalCommands(JDA jda) {
     }
 }
