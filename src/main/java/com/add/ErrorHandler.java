@@ -17,17 +17,24 @@ public class ErrorHandler {
 
     public interface ErrorHandlerInterface {
         public default void onError(Guild guild, String message, Throwable e) {
-            // TextChannel errorChannel = guild
-            //         .getTextChannelById("" + ServerSQL.get(guild.getIdLong(), ServerOptions.BOT_ERROR_CHANNEL));
-            // if (errorChannel != null && errorChannel.canTalk()) {
-            //     errorChannel.sendMessage("" + message).queue();
-            // }
+        }
+
+        public default void onError(Guild guild, String message) {
         }
 
         public default void onError(SlashCommandInteractionEvent event, String message, Throwable e) {
             long errorId = Helper.generateId();
             logger.error("ErrorId: ", errorId);
-            logger.error("Error: {0}", message, e);
+            logger.error("Error: {}", message, e);
+            event.getChannel()
+                    .sendMessage("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
+                    .queue();
+        }
+
+        public default void onError(SlashCommandInteractionEvent event, String message) {
+            long errorId = Helper.generateId();
+            logger.error("ErrorId: ", errorId);
+            logger.error("Error: {}", message);
             event.getChannel()
                     .sendMessage("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
                     .queue();
@@ -38,20 +45,20 @@ public class ErrorHandler {
         ErrorHandler.errorHandler = errorHandler;
     }
 
-    public static void sendErrorMessage(Guild guild, String message) {
-        errorHandler.onError(guild, message, new Throwable());
-    }
-
     public static void sendErrorMessage(Guild guild, String message, Throwable e) {
         errorHandler.onError(guild, message, e);
     }
 
-    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message) {
-        errorHandler.onError(event, message, new Throwable());
+    public static void sendErrorMessage(Guild guild, String message) {
+        errorHandler.onError(guild, message);
     }
 
     public static void sendErrorMessage(SlashCommandInteractionEvent event, String message, Throwable e) {
         errorHandler.onError(event, message, e);
+    }
+
+    public static void sendErrorMessage(SlashCommandInteractionEvent event, String message) {
+        errorHandler.onError(event, message);
     }
 
 }

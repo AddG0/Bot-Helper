@@ -32,7 +32,7 @@ public class SQLHelper {
         try {
             config.setMaximumPoolSize(getMaxConnections());
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting max connections", e);
         }
         ds = new HikariDataSource(config);
     }
@@ -46,11 +46,10 @@ public class SQLHelper {
     private static int getMaxConnections() throws SQLException {
         try (Connection connection = DriverManager.getConnection(env.get("SQLLINK"), env.get("SQLUSER"),
                 env.get("SQLPASS"))) {
-            try (PreparedStatement statement = connection.prepareStatement("SHOW VARIABLES LIKE 'max_connections'")) {
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return resultSet.getInt("Value");
-                    }
+            PreparedStatement statement = connection.prepareStatement("SHOW VARIABLES LIKE 'max_connections'");
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("Value");
                 }
             }
         }
@@ -78,7 +77,7 @@ public class SQLHelper {
         conn.close();
     }
 
-    public static <T> T get(long guildId, SQLTable enumGet, SQLTable enumFrom, Object where) throws SQLException {
+    public static <T> T get(long guildId, SQLTable enumGet, SQLTable enumFrom, Object where) {
         String tableName = enumGet.getTableName();
         String columnName = enumGet.getName();
         Class<T> classType = (Class<T>) enumGet.getType();
@@ -92,17 +91,23 @@ public class SQLHelper {
             if (resultSet.next()) {
                 return resultSet.getObject(columnName, classType);
             }
+        } catch (SQLException e) {
+            logger.error("Error getting from SQL", e);
         }
         throw new IllegalArgumentException("Invalid enum");
     }
 
     public static void update(long guildId, SQLTable enumSet, SQLTable enumWhere,
-            Object where, Object newValue) throws SQLException {
+            Object where, Object newValue) {
         String tableName = enumSet.getTableName();
         String columnName = enumSet.getName();
         String whereColumnName = enumWhere.getName();
-        executeSQL(guildId, "UPDATE " + tableName + " SET " + columnName + " = " + newValue + " WHERE " +
-                whereColumnName + " = " + where);
+        try {
+            executeSQL(guildId, "UPDATE " + tableName + " SET " + columnName + " = " + newValue + " WHERE " +
+                    whereColumnName + " = " + where);
+        } catch (SQLException e) {
+            logger.error("Error updating SQL", e);
+        }
         throw new IllegalArgumentException("Invalid enum");
     }
 }
