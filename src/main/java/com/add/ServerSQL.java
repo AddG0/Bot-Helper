@@ -2,6 +2,7 @@ package com.add;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -40,14 +41,19 @@ public class ServerSQL {
         }
     }
 
-    public static void get(long guildId, String name) {
+    public static String get(long guildId, String name) {
         try (Connection conn = SQLHelper.getConnection(guildId)) {
             try (PreparedStatement statement = conn
                     .prepareStatement("SELECT info FROM serverInfo WHERE name = " + name)) {
-                statement.execute();
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getString("info");
+                    }
+                }
             }
         } catch (SQLException e) {
             logger.error("Error getting server info", e);
         }
+        return null;
     }
 }
