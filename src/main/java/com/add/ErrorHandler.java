@@ -17,11 +17,11 @@ public class ErrorHandler {
 
     public interface ErrorHandlerInterface {
         public default void onError(Guild guild, String message, Throwable e) {
-            TextChannel errorChannel = guild
-                    .getTextChannelById("" + ServerSQL.get(guild.getIdLong(), ServerOptions.BOT_ERROR_CHANNEL));
-            if (errorChannel != null && errorChannel.canTalk()) {
-                errorChannel.sendMessage("" + message).queue();
-            }
+            // TextChannel errorChannel = guild
+            //         .getTextChannelById("" + ServerSQL.get(guild.getIdLong(), ServerOptions.BOT_ERROR_CHANNEL));
+            // if (errorChannel != null && errorChannel.canTalk()) {
+            //     errorChannel.sendMessage("" + message).queue();
+            // }
         }
 
         public default void onError(SlashCommandInteractionEvent event, String message, Throwable e) {

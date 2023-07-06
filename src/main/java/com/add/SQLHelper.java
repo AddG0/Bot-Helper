@@ -6,7 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -14,6 +15,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class SQLHelper {
+    private static Logger logger = LoggerFactory.getLogger(SQLHelper.class.getName());
     private static Dotenv env = Dotenv.load();
     private static Connection conn = null;
 
@@ -36,13 +38,8 @@ public class SQLHelper {
     }
 
     public static Connection getConnection(long guildId) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = ds.getConnection();
-            conn.setCatalog("" + guildId);
-        } catch (SQLException e) {
-            throw e;
-        }
+        Connection conn = ds.getConnection();
+        conn.setCatalog("" + guildId);
         return conn;
     }
 
@@ -75,24 +72,18 @@ public class SQLHelper {
         }
     }
 
-    public static void executeSQL(long guildId, String sql) {
-        try {
-            Connection conn = getConnection(guildId);
-            conn.setCatalog("" + guildId);
-            conn.createStatement().execute(sql);
-            conn.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void executeSQL(long guildId, String sql) throws SQLException {
+        Connection conn = getConnection(guildId);
+        conn.createStatement().execute(sql);
+        conn.close();
     }
 
-    public static <T> T get(long guildId, SQLTable enumGet, SQLTable enumFrom, Object where) {
-        try {
-            String tableName = enumGet.getTableName();
-            String columnName = enumGet.getName();
-            Class<T> classType = (Class<T>) enumGet.getType();
-            String whereColumnName = enumFrom.getName();
-            Connection conn = SQLHelper.getConnection(guildId);
+    public static <T> T get(long guildId, SQLTable enumGet, SQLTable enumFrom, Object where) throws SQLException {
+        String tableName = enumGet.getTableName();
+        String columnName = enumGet.getName();
+        Class<T> classType = (Class<T>) enumGet.getType();
+        String whereColumnName = enumFrom.getName();
+        try (Connection conn = SQLHelper.getConnection(guildId)) {
             PreparedStatement stmt = conn
                     .prepareStatement(
                             "SELECT " + columnName + " FROM " + tableName + " WHERE " + whereColumnName + " = ?");
@@ -101,31 +92,17 @@ public class SQLHelper {
             if (resultSet.next()) {
                 return resultSet.getObject(columnName, classType);
             }
-        } catch (Exception e) {
-            System.out.println(e);
-            e.printStackTrace();
         }
         throw new IllegalArgumentException("Invalid enum");
     }
 
     public static void update(long guildId, SQLTable enumSet, SQLTable enumWhere,
-            Object where, Object newValue) {
-        try {
-            String tableName = enumSet.getTableName();
-            String columnName = enumSet.getName();
-            String whereColumnName = enumWhere.getName();
-            Connection conn = SQLHelper.getConnection(guildId);
-            PreparedStatement stmt = conn
-                    .prepareStatement(
-                            "UPDATE " + tableName + " SET " + columnName + " = ? WHERE " +
-                                    whereColumnName + " = ?");
-            stmt.setObject(1, newValue);
-            stmt.setObject(2, where);
-            stmt.executeUpdate();
-            return;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            Object where, Object newValue) throws SQLException {
+        String tableName = enumSet.getTableName();
+        String columnName = enumSet.getName();
+        String whereColumnName = enumWhere.getName();
+        executeSQL(guildId, "UPDATE " + tableName + " SET " + columnName + " = " + newValue + " WHERE " +
+                whereColumnName + " = " + where);
         throw new IllegalArgumentException("Invalid enum");
     }
 }
