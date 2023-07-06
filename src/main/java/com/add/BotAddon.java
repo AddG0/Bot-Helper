@@ -9,6 +9,6 @@ public abstract class BotAddon extends ListenerAdapter {
     public void upsertCommands(ShardManager shardManager) {
     }
 
-    public void upsertGlobalCommands(JDA jda) {
+    public void upsertGlobalCommands(JDA shard) {
     }
 }

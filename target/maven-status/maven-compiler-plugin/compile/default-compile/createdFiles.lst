@@ -1,4 +1,3 @@
-com\add\BotListener.class
 com\add\ServerOptions.class
 com\add\SQLConnectionFailed.class
 com\add\SQLTable.class
@@ -9,6 +8,7 @@ com\add\Config.class
 com\add\ErrorHandler$1.class
 com\add\AddonAnnotations\Commands.class
 com\add\AddonAnnotations\IDKl.class
+com\add\ShardHelper.class
 com\add\Helper.class
 com\add\ErrorHandler$ErrorHandlerInterface.class
 com\add\AddonAnnotations\Command.class
