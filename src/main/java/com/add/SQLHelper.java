@@ -11,7 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 public class SQLHelper {
+    private static Dotenv env = Dotenv.load();
     private static Connection conn = null;
 
     private static HikariDataSource ds;
@@ -21,10 +24,14 @@ public class SQLHelper {
 
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(Config.get("SQLLINK"));
-        config.setUsername(Config.get("SQLUSER"));
-        config.setPassword(Config.get("SQLPASS"));
-        config.setMaximumPoolSize(1000); // adjust this value according to your needs
+        config.setJdbcUrl(env.get("SQLLINK"));
+        config.setUsername(env.get("SQLUSER"));
+        config.setPassword(env.get("SQLPASS"));
+        try {
+            config.setMaximumPoolSize(getMaxConnections());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         ds = new HikariDataSource(config);
     }
 
@@ -40,8 +47,8 @@ public class SQLHelper {
     }
 
     private static int getMaxConnections() throws SQLException {
-        try (Connection connection = DriverManager.getConnection(Config.get("SQLLINK"), Config.get("SQLUSER"),
-                Config.get("SQLPASS"))) {
+        try (Connection connection = DriverManager.getConnection(env.get("SQLLINK"), env.get("SQLUSER"),
+                env.get("SQLPASS"))) {
             try (PreparedStatement statement = connection.prepareStatement("SHOW VARIABLES LIKE 'max_connections'")) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -54,8 +61,8 @@ public class SQLHelper {
     }
 
     private static int getCurrentConnections() throws SQLException {
-        try (Connection connection = DriverManager.getConnection(Config.get("SQLLINK"), Config.get("SQLUSER"),
-                Config.get("SQLPASS"))) {
+        try (Connection connection = DriverManager.getConnection(env.get("SQLLINK"), env.get("SQLUSER"),
+                env.get("SQLPASS"))) {
             try (PreparedStatement statement = connection.prepareStatement("SHOW PROCESSLIST")) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     int count = 0;

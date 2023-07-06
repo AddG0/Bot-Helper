@@ -9,13 +9,18 @@ import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class ServerSQL extends ListenerAdapter {
+    private static Dotenv env = Dotenv.load();
+    private ServerSQL() {
+    }
+
     public static boolean createGuildDb(long guildId) {
         try {
-            Connection conn = DriverManager.getConnection(Config.get("SQLLINK"), Config.get("SQLUSER"),
-                    Config.get("SQLPASS"));
+            Connection conn = DriverManager.getConnection(env.get("SQLLINK"), env.get("SQLUSER"),
+                    env.get("SQLPASS"));
             PreparedStatement createDbStatement = conn
                     .prepareStatement("CREATE DATABASE IF NOT EXISTS `" + guildId + "`");
             createDbStatement.executeUpdate();
