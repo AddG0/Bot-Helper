@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class ErrorHandler {
@@ -39,6 +38,10 @@ public class ErrorHandler {
                     .sendMessage("" + message + " Error id: `" + errorId + "`. Keep this if choose to contact us!")
                     .queue();
         }
+    }
+
+    public static ErrorHandlerInterface getErrorHandler() {
+        return errorHandler;
     }
 
     public static void setErrorHandler(ErrorHandlerInterface errorHandler) {
