@@ -1,23 +1,34 @@
-package com.add;
+package com.add.discord.bot.helper;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
+import org.jooq.util.xml.jaxb.Column;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.table;
 
+import com.add.discord.bot.addonmanagers.SQLTable;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import io.grpc.InternalConfigSelector.Result;
 
 public class SQLHelper {
     private static Logger logger = LoggerFactory.getLogger(SQLHelper.class.getName());
+    private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private static Dotenv env = Dotenv.load();
-    private static Connection conn = null;
 
     private static HikariDataSource ds;
 
@@ -30,7 +41,9 @@ public class SQLHelper {
         config.setUsername(env.get("SQLUSER"));
         config.setPassword(env.get("SQLPASS"));
         try {
-            config.setMaximumPoolSize(getMaxConnections());
+            int maxConnections = getMaxConnections();
+            config.setMaximumPoolSize(maxConnections);
+            logger.info("Max connections: {}", maxConnections);
         } catch (SQLException e) {
             logger.error("Error getting max connections", e);
         }
@@ -40,6 +53,18 @@ public class SQLHelper {
     public static Connection getConnection(long guildId) throws SQLException {
         Connection conn = ds.getConnection();
         conn.setCatalog("" + guildId);
+        Exception exception = new Exception();
+        String callerClassName = exception.getStackTrace()[1].getClassName();
+        executorService.schedule(() -> {
+            try {
+                if (!conn.isClosed()) {
+                    logger.warn("SQL connection open in class " + callerClassName + " for more than 10 seconds",
+                            exception);
+                }
+            } catch (SQLException e) {
+                logger.error("Error checking if SQL connection is closed", e);
+            }
+        }, 10, TimeUnit.SECONDS);
         return conn;
     }
 
@@ -72,9 +97,9 @@ public class SQLHelper {
     }
 
     public static void executeSQL(long guildId, String sql) throws SQLException {
-        Connection conn = getConnection(guildId);
-        conn.createStatement().execute(sql);
-        conn.close();
+        try (Connection conn = getConnection(guildId)) {
+            conn.createStatement().execute(sql);
+        }
     }
 
     public static <T> T get(long guildId, SQLTable enumGet, SQLTable enumFrom, Object where) {
@@ -83,11 +108,16 @@ public class SQLHelper {
         Class<T> classType = (Class<T>) enumGet.getType();
         String whereColumnName = enumFrom.getName();
         try (Connection conn = SQLHelper.getConnection(guildId)) {
-            PreparedStatement stmt = conn
-                    .prepareStatement(
-                            "SELECT " + columnName + " FROM " + tableName + " WHERE " + whereColumnName + " = ?");
-            stmt.setObject(1, where);
-            ResultSet resultSet = stmt.executeQuery();
+            DSLContext create = DSL.using(conn, SQLDialect.MYSQL);
+            ResultSet resultSet = create.select(field(
+                    columnName)).from(table(tableName))
+                    .where(field(whereColumnName).eq(where)).fetchResultSet();
+
+            // PreparedStatement stmt = conn
+            //         .prepareStatement(
+            //                 "SELECT " + columnName + " FROM " + tableName + " WHERE " + whereColumnName + " = ?");
+            // stmt.setObject(1, where);
+            // ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
                 return resultSet.getObject(columnName, classType);
             }
@@ -102,9 +132,18 @@ public class SQLHelper {
         String tableName = enumSet.getTableName();
         String columnName = enumSet.getName();
         String whereColumnName = enumWhere.getName();
-        try {
-            executeSQL(guildId, "UPDATE " + tableName + " SET " + columnName + " = " + newValue + " WHERE " +
-                    whereColumnName + " = " + where);
+        try (Connection conn = SQLHelper.getConnection(guildId)) {
+            DSLContext create = DSL.using(conn, SQLDialect.MYSQL);
+            create.update(table(tableName))
+                    .set(field(columnName), newValue)
+                    .where(field(whereColumnName).eq(where))
+                    .execute();
+            // PreparedStatement stmt = conn
+            //         .prepareStatement(
+            //                 "UPDATE " + tableName + " SET " + columnName + " = ? WHERE " + whereColumnName + " = ?");
+            // stmt.setObject(1, newValue);
+            // stmt.setObject(2, where);
+            // stmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("Error updating SQL", e);
         }

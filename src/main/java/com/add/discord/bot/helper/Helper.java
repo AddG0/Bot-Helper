@@ -1,4 +1,4 @@
-package com.add;
+package com.add.discord.bot.helper;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;

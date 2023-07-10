@@ -1,4 +1,4 @@
-package com.add;
+package com.add.discord.bot.addonmanagers;
 
 
 public interface SQLTable {

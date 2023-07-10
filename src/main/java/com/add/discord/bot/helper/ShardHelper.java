@@ -1,6 +1,7 @@
-package com.add;
+package com.add.discord.bot.helper;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
 public class ShardHelper {
@@ -19,6 +20,10 @@ public class ShardHelper {
 
     public static JDA getJDAForGuild(long guildId) {
         return shardManager.getShardById((int) (guildId >> 22));
+    }
+
+    public static Guild getGuildById(long guildId) {
+        return getJDAForGuild(guildId).getGuildById(guildId);
     }
 
     public static boolean allShardsReady() {

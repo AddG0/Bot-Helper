@@ -4,7 +4,7 @@
 
   <groupId>com.add</groupId>
   <artifactId>bot-helper</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 
   <name>bot-helper</name>
 
@@ -16,11 +16,17 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>3.18.5</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>5.0.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.languagetool</groupId>
       <artifactId>language-en</artifactId>
@@ -88,15 +94,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.2.2</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>com.shipperhq.Main</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
