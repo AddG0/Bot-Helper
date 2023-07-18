@@ -11,19 +11,6 @@ public class Helper {
     private Helper() {
     }
 
-    public static Message getMessageFromLink(Guild guild, String messageLink) {
-        String[] splitLink = messageLink.split("/");
-        if (splitLink.length != 7) {
-            return null;
-        }
-        String messageId = splitLink[splitLink.length - 1];
-        TextChannel channel = guild.getTextChannelById("" + splitLink[splitLink.length - 2]);
-        if (channel == null) {
-            return null;
-        }
-        return channel.retrieveMessageById("" + messageId).complete();
-    }
-
     public static long generateId() {
         return Long.parseLong(String.format("%019d", Math.abs(new Random().nextLong())));
     }

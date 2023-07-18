@@ -13,10 +13,11 @@ import com.add.discord.bot.addonmanagers.annotations.sql.CreateTable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerSQL {
     private static Logger logger = LoggerFactory.getLogger(ServerSQL.class.getName());
-    private static Map<String, Class<?>> classTypes = new HashMap<>();
+    private static ConcurrentHashMap<String, Class<?>> classTypes = new ConcurrentHashMap<>();
     private static final String TABLE = "serverInfo";
 
     private ServerSQL() {
@@ -30,11 +31,6 @@ public class ServerSQL {
         } catch (SQLException e) {
             logger.error("Error creating table", e);
         }
-    }
-
-    public static void insertServerInfo(long guildId, String name, Object info, Class<?> type) {
-        classTypes.put(name, type);
-        insertServerInfo(guildId, name, info);
     }
 
     public static void insertServerInfo(long guildId, String name, Object info) {
@@ -53,7 +49,7 @@ public class ServerSQL {
         try (Connection conn = SQLHelper.getConnection(guildId)) {
             PreparedStatement statement = conn
                     .prepareStatement("UPDATE serverInfo SET info = ? WHERE name = ?");
-            statement.setObject(1, info);
+            statement.setString(1, "" + info);
             statement.setString(2, name);
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -61,17 +57,15 @@ public class ServerSQL {
         }
     }
 
-    public static <T> T get(long guildId, String name) {
+    public static String get(long guildId, String name) {
         try (Connection conn = SQLHelper.getConnection(guildId)) {
             PreparedStatement statement = conn
                     .prepareStatement("SELECT info FROM serverInfo WHERE name = ?");
             statement.setString(1, name);
-            String info = statement.executeQuery().getString(1);
-            Class<T> type = (Class<T>) classTypes.get(name);
-            if (type == null) {
-                type = (Class<T>) String.class;
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getString("info");
             }
-            return type.cast(info);
         } catch (SQLException e) {
             logger.error("Error getting server info", e);
         }
